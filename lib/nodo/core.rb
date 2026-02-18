@@ -111,9 +111,20 @@ module Nodo
           opts = mods.last.is_a?(Hash) ? mods.pop : {}
 
           if opts[:from] && mods.size == 1
-            name = mods.first
             package = opts[:from]
-            self.dependencies = dependencies + [Dependency.new(name, package, type: type, named_export: name.to_s)]
+            imports = mods.first
+
+            new_deps = case imports
+            when Symbol
+              local_name = opts[:as] || imports
+              [Dependency.new(local_name, package, type: type, named_export: imports.to_s)]
+            when Array
+              imports.map { |name| Dependency.new(name, package, type: type, named_export: name.to_s) }
+            when Hash
+              imports.map { |export_name, local_name| Dependency.new(local_name, package, type: type, named_export: export_name.to_s) }
+            end
+
+            self.dependencies = dependencies + new_deps
           else
             mods = mods.map { |m| [m, m] }.to_h
             self.dependencies = dependencies + mods.merge(opts).map { |name, package| Dependency.new(name, package, type: type) }

@@ -135,6 +135,49 @@ end
 
 This is equivalent to `import { v4 } from 'uuid'` in JavaScript.
 
+Multiple named exports can be imported using an array:
+
+```ruby
+class Bar < Nodo::Core
+  import [:v1, :v4], from: 'uuid'
+end
+```
+
+This is equivalent to `import { v1, v4 } from 'uuid'` in JavaScript.
+
+To alias a named import, use `as:`:
+
+```ruby
+class Bar < Nodo::Core
+  import :v4, as: :generateUuid, from: 'uuid'
+
+  function :generate, <<~JS
+    () => {
+      return generateUuid();
+    }
+  JS
+end
+```
+
+This is equivalent to `import { v4 as generateUuid } from 'uuid'` in JavaScript.
+
+For multiple aliased imports, use a hash (parentheses required):
+
+```ruby
+class Bar < Nodo::Core
+  import({ v4: :gen4, v1: :gen1 }, from: 'uuid')
+end
+```
+
+Alternatively, use multiple `import` calls:
+
+```ruby
+class Bar < Nodo::Core
+  import :v1, as: :gen1, from: 'uuid'
+  import :v4, as: :gen4, from: 'uuid'
+end
+```
+
 ### Aliasing requires
 
 If the library name cannot be used as name of the constant, the `const` name

@@ -333,6 +333,46 @@ class NodoTest < Minitest::Test
     end
   end
 
+  def test_named_import_multiple_with_array
+    nodo = Class.new(Nodo::Core) do
+      import [:v4, :v1], from: 'uuid'
+      function :generate_v4, "() => v4()"
+      function :generate_v1, "() => v1()"
+    end
+
+    assert_uuid nodo.new.generate_v4
+    assert_uuid nodo.new.generate_v1
+  end
+
+  def test_named_import_with_as_alias
+    nodo = Class.new(Nodo::Core) do
+      import :v4, as: :generateUuid, from: 'uuid'
+      function :generate, "() => generateUuid()"
+    end
+
+    assert_uuid nodo.new.generate
+  end
+
+  def test_named_import_with_hash_alias
+    nodo = Class.new(Nodo::Core) do
+      import({ v4: :generateUuid }, from: 'uuid')
+      function :generate, "() => generateUuid()"
+    end
+
+    assert_uuid nodo.new.generate
+  end
+
+  def test_named_import_multiple_with_hash_aliases
+    nodo = Class.new(Nodo::Core) do
+      import({ v4: :gen4, v1: :gen1 }, from: 'uuid')
+      function :generate_v4, "() => gen4()"
+      function :generate_v1, "() => gen1()"
+    end
+
+    assert_uuid nodo.new.generate_v4
+    assert_uuid nodo.new.generate_v1
+  end
+
   private
 
   def test_logger
