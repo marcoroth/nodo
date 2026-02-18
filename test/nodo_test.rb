@@ -354,6 +354,43 @@ class NodoTest < Minitest::Test
     assert_equal 'esm', nodo.new.get_entry_type
   end
 
+  def test_named_import
+    nodo = Class.new(Nodo::Core) do
+      import :v4, from: 'uuid'
+      function :generate, "() => v4()"
+    end
+
+    assert_uuid nodo.new.generate
+  end
+
+  def test_named_import_with_alias
+    nodo = Class.new(Nodo::Core) do
+      import :existsSync, from: 'fs'
+      function :exists_file, "(file) => existsSync(file)"
+    end
+
+    assert_equal true, nodo.instance.exists_file(__FILE__)
+    assert_equal false, nodo.instance.exists_file('FOOBARFOO')
+  end
+
+  def test_named_import_in_evaluation
+    nodo = Class.new(Nodo::Core) { import :v4, from: 'uuid' }
+    uuid = nodo.new.evaluate('v4()')
+    assert_uuid uuid
+  end
+
+  def test_named_import_dependency_error
+    with_logger nil do
+      nodo = Class.new(Nodo::Core) do
+        import :foo, from: 'nonexistent-package-12345'
+      end
+
+      assert_raises Nodo::DependencyError do
+        nodo.new
+      end
+    end
+  end
+
   private
 
   def test_logger
